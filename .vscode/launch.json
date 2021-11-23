@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node-terminal",
+      "name": "Run Tests",
+      "request": "launch",
+      "command": "npm run test",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
