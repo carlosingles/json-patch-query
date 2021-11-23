@@ -10,7 +10,7 @@ Accepts a document and an array of patch operations to be performed on the docum
 Returns the mutated document.
 
 ### Examples
-For working examples of JSON Patch Query, look at the `src/test` folder in this repository, where there a wide variety of examples executing the different operations.
+For working examples of JSON Patch Query, look at the [`src/test/unit.test.ts`](https://github.com/carlosingles/json-patch-query/blob/main/src/test/unit.test.ts) file in this repository, where there a wide variety of examples executing the different operations.
 
 
 ## Edge Cases
@@ -54,13 +54,13 @@ Consider a document that has two items that may have an ambiguous JSON path, in 
 ```
 
 You may update the `relatedParty` of a specific `orderItem` with a JSON path as follows:
-```json
+```
 // Update the address where the relatedParty.name of the product is Mary
 orderItem[?(@.productOffering.id=="1513")].product.relatedParty[?(@.name=="Mary")].address
 ```
 
 However, if you wanted to update the quantity of the same `orderItem`, a JSON path with a query would not be possible, instead you would need to provide the index upfront.
-```json
+```
 // ❌ JSON Path does not support nested queries, quantity cannot be updated this way
 orderItem[?(@.productOffering.id=="1513" && @.product.relatedParty[?(@.name=="Mary")])].quantity
 
