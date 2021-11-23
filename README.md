@@ -30,9 +30,9 @@ Consider a document that has two items that may have an ambiguous JSON path, in 
     },
     "product": {
       "relatedParty": [{
+        "id": "7894",
         "name": "Mary",
-        "role": "customer",
-        "address": "Melbourne"
+        "role": "customer"
       }]
     }
   }, {
@@ -45,6 +45,7 @@ Consider a document that has two items that may have an ambiguous JSON path, in 
     },
     "product": {
       "relatedParty": [{
+        "id": "3456",
         "name": "John",
         "role": "customer"
       }]
@@ -55,16 +56,18 @@ Consider a document that has two items that may have an ambiguous JSON path, in 
 
 You may update the `relatedParty` of a specific `orderItem` with a JSON path as follows:
 ```
-// Update the address where the relatedParty.name of the product is Mary
-orderItem[?(@.productOffering.id=="1513")].product.relatedParty[?(@.name=="Mary")].address
+// Update the name where the relatedParty.id of the product is 7894
+$.orderItem[?(@.productOffering.id=="1513")].product.relatedParty[?(@.id=="7894")].name
 ```
 
 However, if you wanted to update the quantity of the same `orderItem`, a JSON path with a query would not be possible, instead you would need to provide the index upfront.
 ```
 // ❌ JSON Path does not support nested queries, quantity cannot be updated this way
-orderItem[?(@.productOffering.id=="1513" && @.product.relatedParty[?(@.name=="Mary")])].quantity
+$.orderItem[?(@.productOffering.id=="1513" && @.product.relatedParty[?(@.id=="7894")])].quantity
 
-// ✅ Update the quantity of the orderItem where the relatedParty.name of the product is Mary (with a fixed index)
-orderItem[?(@.productOffering.id=="1513" && @.product.relatedParty[0].name=="Mary")].quantity
+// ✅ Update the quantity of the orderItem where the relatedParty.id of the product is 7894 (with a fixed index)
+$.orderItem[?(@.productOffering.id=="1513" && @.product.relatedParty[0].id=="7894")].quantity
 ```
 This limitation is due to the way that JSON Path traverses the document whilst performing the query. Once it has gone down the tree, it can no longer go back up the tree to retrieve the property. Additionally, nested queries are not supported within JSON Path.
+
+That is, unlike XPath, JSON Path does not have operations for accessing parent or sibling nodes from the given node.
