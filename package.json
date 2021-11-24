@@ -1,6 +1,6 @@
 {
   "name": "json-patch-query",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Implementation of JSON Patch Query as proposed by the TM Forum",
   "main": "dist/JSONPatchQuery.js",
   "scripts": {
@@ -8,6 +8,9 @@
     "build": "tsc",
     "test": "mocha"
   },
+  "files": [
+    "dist/*"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/carlosingles/json-patch-query.git"
@@ -16,7 +19,13 @@
     "url": "https://github.com/carlosingles/json-patch-query/issues"
   },
   "homepage": "https://github.com/carlosingles/json-patch-query#README",
-  "keywords": ["json", "json patch query", "json patch", "tmf", "tm forum"],
+  "keywords": [
+    "json",
+    "json patch query",
+    "json patch",
+    "tmf",
+    "tm forum"
+  ],
   "author": "Carlos Ingles",
   "license": "MIT",
   "devDependencies": {
