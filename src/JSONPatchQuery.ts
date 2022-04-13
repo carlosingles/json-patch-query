@@ -39,7 +39,21 @@ ReplaceOperation<any> | MoveOperation | CopyOperation | TestOperation<any> | Get
 export default class JSONPatchQuery {
   static apply(document: any, patch: Operation[]): any {
     patch.forEach((operation) => {
-      const paths = jp.paths(document, operation.path);
+      let paths = jp.paths(document, operation.path);
+      // when it's an add operation and there is no matching path
+      // try to see if there is a valid path on the parent
+      // and add the property that doesn't exist
+      if (paths.length === 0 && operation.op === 'add') {
+        const pathArray = operation.path.split('.');
+        const addition = { key: pathArray.pop(), path: pathArray.join('.') };
+        const additionPaths = jp.paths(document, addition.path);
+        if (additionPaths.length > 0 && addition.key) {
+          const additionPath = additionPaths[0].filter((p) => p !== '$');
+          const element = get(document, additionPath);
+          set(document, additionPath, { ...element, [addition.key]: undefined });
+          paths = jp.paths(document, operation.path);
+        }
+      }
       paths.forEach((_path) => {
         const path = _path.filter((p) => p !== '$');
         const element = get(document, path);

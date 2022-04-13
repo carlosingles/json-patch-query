@@ -786,6 +786,136 @@ suite('Generic ELine Service Examples', () => {
       expect(result).to.eql(expected);
     });
 
+    test('Adding serviceRelationship to a service, when property does not exist', () => {
+      const document = {
+        id: 'e26205f4-e144-4ded-9e64-82ede0b26e33',
+        href: 'serviceOrdering/v4/serviceOrder/internetDirect/e26205f4-e144-4ded-9e64-82ede0b26e33',
+        orderDate: '2020-04-01T14:20:54.1Z',
+        requestedCompletionDate: '2020-10-01T14:20:54.1Z',
+        startDate: '2020-04-01T14:20:54.1Z',
+        state: 'inProgress',
+        externalReference: [
+          {
+            externalReferenceType: 'SalesOrderId',
+            name: 'ORD1234567',
+          },
+          {
+            externalReferenceType: 'FeasibilityId',
+            name: 'ABC1234567',
+          },
+        ],
+        relatedParty: [
+          {
+            id: 'B2BSmallandMediumBusiness',
+            role: 'InstanceConsumerGroup',
+            '@referredType': 'InstanceConsumerGroup',
+          },
+        ],
+        serviceOrderItem: [
+          {
+            id: 'e26205f4-e144-4ded-9e64-82ede0b26f4',
+            action: 'add',
+            state: 'inProgress',
+            service: {
+              id: 'f36205f4-e144-4ded-9e64-82ede0b26e22',
+              href: 'activationAndConfiguration/v4/service/internetDirect/f36205f4-e144-4ded-9e64-82ede0b26e22',
+            },
+          },
+        ],
+      };
+      const patch: Operation[] = [
+        {
+          op: 'add',
+          path: "$.serviceOrderItem[?(@.service.id=='f36205f4-e144-4ded-9e64-82ede0b26e22')].service.serviceRelationship",
+          value: [{
+            relationshipType: 'substitutionBy',
+            service: {
+              id: 'd11e1668-2715-409e-a586-6e0bfa55de9e',
+              href: 'activationAndConfiguration/v4/service/ethernetAccessInterface/d11e1668-2715-409e-a586-6e0bfa55de9e',
+            },
+            serviceRelationshipCharacteristic: [
+              {
+                name: 'accessTopology',
+                value: 'Fully Redundant',
+              },
+            ],
+          }],
+        },
+        {
+          op: 'add',
+          path: "$.serviceOrderItem[?(@.service.id=='f36205f4-e144-4ded-9e64-82ede0b26e22')].service.serviceRelationship",
+          value: {
+            relationshipType: 'reliesOn',
+            service: {
+              id: 'd11e1668-2715-409e-a586-6e0bfa55de9e',
+              href: 'activationAndConfiguration/v4/service/ethernetAccess/d11e1668-2715-409e-a586-6e0bfa55de9e',
+            },
+          },
+        },
+      ];
+      const expected = {
+        id: 'e26205f4-e144-4ded-9e64-82ede0b26e33',
+        href: 'serviceOrdering/v4/serviceOrder/internetDirect/e26205f4-e144-4ded-9e64-82ede0b26e33',
+        orderDate: '2020-04-01T14:20:54.1Z',
+        requestedCompletionDate: '2020-10-01T14:20:54.1Z',
+        startDate: '2020-04-01T14:20:54.1Z',
+        state: 'inProgress',
+        externalReference: [
+          {
+            externalReferenceType: 'SalesOrderId',
+            name: 'ORD1234567',
+          },
+          {
+            externalReferenceType: 'FeasibilityId',
+            name: 'ABC1234567',
+          },
+        ],
+        relatedParty: [
+          {
+            id: 'B2BSmallandMediumBusiness',
+            role: 'InstanceConsumerGroup',
+            '@referredType': 'InstanceConsumerGroup',
+          },
+        ],
+        serviceOrderItem: [
+          {
+            id: 'e26205f4-e144-4ded-9e64-82ede0b26f4',
+            action: 'add',
+            state: 'inProgress',
+            service: {
+              id: 'f36205f4-e144-4ded-9e64-82ede0b26e22',
+              href: 'activationAndConfiguration/v4/service/internetDirect/f36205f4-e144-4ded-9e64-82ede0b26e22',
+              serviceRelationship: [
+                {
+                  relationshipType: 'substitutionBy',
+                  service: {
+                    id: 'd11e1668-2715-409e-a586-6e0bfa55de9e',
+                    href: 'activationAndConfiguration/v4/service/ethernetAccessInterface/d11e1668-2715-409e-a586-6e0bfa55de9e',
+                  },
+                  serviceRelationshipCharacteristic: [
+                    {
+                      name: 'accessTopology',
+                      value: 'Fully Redundant',
+                    },
+                  ],
+                },
+                {
+                  relationshipType: 'reliesOn',
+                  service: {
+                    id: 'd11e1668-2715-409e-a586-6e0bfa55de9e',
+                    href: 'activationAndConfiguration/v4/service/ethernetAccess/d11e1668-2715-409e-a586-6e0bfa55de9e',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+
+      const result = JSONPatchQuery.apply(document, patch);
+      expect(result).to.eql(expected);
+    });
+
     test('Removing a supportingService', () => {
       const document = {
         id: 'e26205f4-e144-4ded-9e64-82ede0b26e33',
