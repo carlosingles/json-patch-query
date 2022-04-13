@@ -44,6 +44,10 @@ export default class JSONPatchQuery {
       // try to see if there is a valid path on the parent
       // and add the property that doesn't exist
       if (paths.length === 0 && operation.op === 'add') {
+        // check to see if the path does end in a static property (case where final node is a query)
+        if (!/^(.*)\.[a-z]*$/i.test(operation.path)) {
+          throw new Error(`Provided JSON Path did not resolve any nodes, path: ${operation.path}`);
+        }
         const pathArray = operation.path.split('.');
         const addition = { key: pathArray.pop(), path: pathArray.join('.') };
         const additionPaths = jp.paths(document, addition.path);
@@ -53,6 +57,9 @@ export default class JSONPatchQuery {
           set(document, additionPath, { ...element, [addition.key]: undefined });
           paths = jp.paths(document, operation.path);
         }
+      }
+      if (paths.length === 0) {
+        throw new Error(`Provided JSON Path did not resolve any nodes, path: ${operation.path}`);
       }
       paths.forEach((_path) => {
         const path = _path.filter((p) => p !== '$');
