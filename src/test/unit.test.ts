@@ -916,6 +916,124 @@ suite('Generic ELine Service Examples', () => {
       expect(result).to.eql(expected);
     });
 
+    test('Throwing an error message, when trying to add a property to a non existent property', () => {
+      const document = {
+        id: 'e26205f4-e144-4ded-9e64-82ede0b26e33',
+        href: 'serviceOrdering/v4/serviceOrder/internetDirect/e26205f4-e144-4ded-9e64-82ede0b26e33',
+        orderDate: '2020-04-01T14:20:54.1Z',
+        requestedCompletionDate: '2020-10-01T14:20:54.1Z',
+        startDate: '2020-04-01T14:20:54.1Z',
+        state: 'inProgress',
+        externalReference: [
+          {
+            externalReferenceType: 'SalesOrderId',
+            name: 'ORD1234567',
+          },
+          {
+            externalReferenceType: 'FeasibilityId',
+            name: 'ABC1234567',
+          },
+        ],
+        relatedParty: [
+          {
+            id: 'B2BSmallandMediumBusiness',
+            role: 'InstanceConsumerGroup',
+            '@referredType': 'InstanceConsumerGroup',
+          },
+        ],
+        serviceOrderItem: [
+          {
+            id: 'e26205f4-e144-4ded-9e64-82ede0b26f4',
+            action: 'add',
+            state: 'inProgress',
+            service: {
+              id: 'f36205f4-e144-4ded-9e64-82ede0b26e22',
+              href: 'activationAndConfiguration/v4/service/internetDirect/f36205f4-e144-4ded-9e64-82ede0b26e22',
+            },
+          },
+        ],
+      };
+      const patch: Operation[] = [
+        {
+          op: 'add',
+          path: "$.serviceOrderItem[?(@.service.id=='f36205f4-e144-4ded-9e64-82ede0b26e22')].service.serviceRelationship.values",
+          value: [{
+            relationshipType: 'substitutionBy',
+            service: {
+              id: 'd11e1668-2715-409e-a586-6e0bfa55de9e',
+              href: 'activationAndConfiguration/v4/service/ethernetAccessInterface/d11e1668-2715-409e-a586-6e0bfa55de9e',
+            },
+            serviceRelationshipCharacteristic: [
+              {
+                name: 'accessTopology',
+                value: 'Fully Redundant',
+              },
+            ],
+          }],
+        },
+      ];
+      expect(JSONPatchQuery.apply.bind(JSONPatchQuery, document, patch)).to.throw(Error, /Provided JSON Path did not resolve any nodes/);
+    });
+
+    test('Throwing an error message, when trying to add a property to a non existent property via a query', () => {
+      const document = {
+        id: 'e26205f4-e144-4ded-9e64-82ede0b26e33',
+        href: 'serviceOrdering/v4/serviceOrder/internetDirect/e26205f4-e144-4ded-9e64-82ede0b26e33',
+        orderDate: '2020-04-01T14:20:54.1Z',
+        requestedCompletionDate: '2020-10-01T14:20:54.1Z',
+        startDate: '2020-04-01T14:20:54.1Z',
+        state: 'inProgress',
+        externalReference: [
+          {
+            externalReferenceType: 'SalesOrderId',
+            name: 'ORD1234567',
+          },
+          {
+            externalReferenceType: 'FeasibilityId',
+            name: 'ABC1234567',
+          },
+        ],
+        relatedParty: [
+          {
+            id: 'B2BSmallandMediumBusiness',
+            role: 'InstanceConsumerGroup',
+            '@referredType': 'InstanceConsumerGroup',
+          },
+        ],
+        serviceOrderItem: [
+          {
+            id: 'e26205f4-e144-4ded-9e64-82ede0b26f4',
+            action: 'add',
+            state: 'inProgress',
+            service: {
+              id: 'f36205f4-e144-4ded-9e64-82ede0b26e22',
+              href: 'activationAndConfiguration/v4/service/internetDirect/f36205f4-e144-4ded-9e64-82ede0b26e22',
+            },
+          },
+        ],
+      };
+      const patch: Operation[] = [
+        {
+          op: 'add',
+          path: "$.serviceOrderItem[?(@.service.id=='f36205f4-e144-4ded-9e64-82ede0b26e22')].service.serviceRelationship[?(@.id=='d11e1668-2715-409e-a586-6e0bfa55de9e')]",
+          value: [{
+            relationshipType: 'substitutionBy',
+            service: {
+              id: 'd11e1668-2715-409e-a586-6e0bfa55de9e',
+              href: 'activationAndConfiguration/v4/service/ethernetAccessInterface/d11e1668-2715-409e-a586-6e0bfa55de9e',
+            },
+            serviceRelationshipCharacteristic: [
+              {
+                name: 'accessTopology',
+                value: 'Fully Redundant',
+              },
+            ],
+          }],
+        },
+      ];
+      expect(JSONPatchQuery.apply.bind(JSONPatchQuery, document, patch)).to.throw(Error, /Provided JSON Path did not resolve any nodes/);
+    });
+
     test('Removing a supportingService', () => {
       const document = {
         id: 'e26205f4-e144-4ded-9e64-82ede0b26e33',
