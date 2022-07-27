@@ -545,7 +545,7 @@ suite('Generic ELine Service Examples', () => {
       const patch: Operation[] = [
         {
           op: 'remove',
-          path: 'serviceCharacteristic[?(@.name=="suspensionReason")].value[?(@=="fraudHeavy")]',
+          path: 'serviceCharacteristic[?(@.name=="suspensionReason")].value[?(@ =="fraudHeavy")]',
         },
       ];
       const expected = {
@@ -1207,7 +1207,7 @@ suite('Generic ELine Service Examples', () => {
       const patch: Operation[] = [
         {
           op: 'remove',
-          path: 'supportingService[?(@.id=="ed7ce908-9e89-11e8-98d0-529269fb1459")].serviceCharacteristic[?(@.name=="callRestriction")].value[?(@=="barTotal")]',
+          path: 'supportingService[?(@.id=="ed7ce908-9e89-11e8-98d0-529269fb1459")].serviceCharacteristic[?(@.name=="callRestriction")].value[?(@ =="barTotal")]',
         },
       ];
       const expected = {

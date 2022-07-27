@@ -1,4 +1,4 @@
-import jp from 'jsonpath';
+import { JSONPath } from 'jsonpath-plus';
 import get from 'lodash.get';
 import set from 'lodash.set';
 import unset from 'lodash.unset';
@@ -39,7 +39,8 @@ ReplaceOperation<any> | MoveOperation | CopyOperation | TestOperation<any> | Get
 export default class JSONPatchQuery {
   static apply(document: any, patch: Operation[]): any {
     patch.forEach((operation) => {
-      let paths = jp.paths(document, operation.path);
+      const results: string[] = JSONPath({ path: operation.path, json: document, resultType: 'path' });
+      let paths = results.map((result) => JSONPath.toPathArray(result) as string[]);
       // when it's an add operation and there is no matching path
       // try to see if there is a valid path on the parent
       // and add the property that doesn't exist
@@ -50,12 +51,14 @@ export default class JSONPatchQuery {
         }
         const pathArray = operation.path.split('.');
         const addition = { key: pathArray.pop(), path: pathArray.join('.') };
-        const additionPaths = jp.paths(document, addition.path);
+        const addResults: string[] = JSONPath({ path: addition.path, json: document, resultType: 'path' });
+        const additionPaths = addResults.map((result) => JSONPath.toPathArray(result) as string[]);
         if (additionPaths.length > 0 && addition.key) {
           const additionPath = additionPaths[0].filter((p) => p !== '$');
           const element = get(document, additionPath);
           set(document, additionPath, { ...element, [addition.key]: undefined });
-          paths = jp.paths(document, operation.path);
+          const match: string[] = JSONPath({ path: operation.path, json: document, resultType: 'path' });
+          paths = match.map((result) => JSONPath.toPathArray(result) as string[]);
         }
       }
       if (paths.length === 0) {
@@ -81,7 +84,7 @@ export default class JSONPatchQuery {
             break;
           case 'remove':
             if (Array.isArray(parent)) {
-              parent.splice(elementKey as number, 1);
+              parent.splice(parseInt(elementKey, 10), 1);
               set(document, parentPath, parent);
             } else {
               unset(document, path);
