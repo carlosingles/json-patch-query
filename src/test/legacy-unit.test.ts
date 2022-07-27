@@ -2,7 +2,7 @@ import { suite, test } from 'mocha';
 import { expect } from 'chai';
 import JSONPatchQuery, { Operation } from '../JSONPatchQuery';
 
-suite('application/json-patch+query', () => {
+suite('application/json-patch-query+json', () => {
   suite('TM Forum Examples', () => {
     test('Adding an attribute to one of the components of an array', () => {
       const document = {
@@ -19,8 +19,8 @@ suite('application/json-patch+query', () => {
       const patch: Operation[] = [
         {
           op: 'add',
-          path: 'note[?(@.author=="John Doe")]',
-          value: { text: 'Informed' },
+          path: '/note/text?note.author=John Doe',
+          value: 'Informed',
         },
       ];
       const expected = {
@@ -35,7 +35,7 @@ suite('application/json-patch+query', () => {
           text: 'Informed',
         }],
       };
-      const result = JSONPatchQuery.apply(document, patch);
+      const result = JSONPatchQuery.applyLegacy(document, patch);
       expect(result).to.eql(expected);
     });
 
@@ -60,7 +60,7 @@ suite('application/json-patch+query', () => {
       const patch: Operation[] = [
         {
           op: 'remove',
-          path: 'note[?(@.author=="John Doe")]',
+          path: '/note?note.author=John Doe',
         },
       ];
       const expected = {
@@ -76,7 +76,7 @@ suite('application/json-patch+query', () => {
           text: 'Resolved issue',
         }],
       };
-      const result = JSONPatchQuery.apply(document, patch);
+      const result = JSONPatchQuery.applyLegacy(document, patch);
       expect(result).to.eql(expected);
     });
 
@@ -101,7 +101,7 @@ suite('application/json-patch+query', () => {
       const patch: Operation[] = [
         {
           op: 'remove',
-          path: 'productPrice[?(@.name=="Regular Price")].prodPriceAlteration',
+          path: '/productPrice/prodPriceAlteration?prodPrice.name=Regular Price',
         },
       ];
       const expected = {
@@ -117,7 +117,7 @@ suite('application/json-patch+query', () => {
           price: {},
         }],
       };
-      const result = JSONPatchQuery.apply(document, patch);
+      const result = JSONPatchQuery.applyLegacy(document, patch);
       expect(result).to.eql(expected);
     });
 
@@ -142,7 +142,7 @@ suite('application/json-patch+query', () => {
       const patch: Operation[] = [
         {
           op: 'remove',
-          path: 'productPrice[?(@.name=="Setup Price")]',
+          path: '/productPrice?productPrice.name=Setup Price',
         },
       ];
       const expected = {
@@ -158,7 +158,7 @@ suite('application/json-patch+query', () => {
           price: {},
         }],
       };
-      const result = JSONPatchQuery.apply(document, patch);
+      const result = JSONPatchQuery.applyLegacy(document, patch);
       expect(result).to.eql(expected);
     });
 
@@ -186,7 +186,7 @@ suite('application/json-patch+query', () => {
       const patch: Operation[] = [
         {
           op: 'replace',
-          path: 'productOfferingPrice[?(@.name=="Monthly Price")].price.amount',
+          path: '/productOfferingPrice/price/amount?productOfferingPrice.name=MonthlyPrice',
           value: 25,
         },
       ];
@@ -210,7 +210,7 @@ suite('application/json-patch+query', () => {
           },
         }],
       };
-      const result = JSONPatchQuery.apply(document, patch);
+      const result = JSONPatchQuery.applyLegacy(document, patch);
       expect(result).to.eql(expected);
     });
 
@@ -238,7 +238,7 @@ suite('application/json-patch+query', () => {
       const patch: Operation[] = [
         {
           op: 'replace',
-          path: 'productOfferingPrice[?(@.name=="Setup Price")].price',
+          path: '/productOferringPrice/price?productOfferingPrice.name=Setup Price',
           value: {
             amount: 40,
             units: 'USD',
@@ -265,11 +265,11 @@ suite('application/json-patch+query', () => {
           },
         }],
       };
-      const result = JSONPatchQuery.apply(document, patch);
+      const result = JSONPatchQuery.applyLegacy(document, patch);
       expect(result).to.eql(expected);
     });
 
-    test('Replacing an attribute from one of the components of a complex array (resolving ambiguities using a fixed index)', () => {
+    test('Replacing an attribute from one of the components of a complex array (resolving ambiguities)', () => {
       const document = {
         id: '3774',
         description: 'This product order covers ...',
@@ -307,7 +307,7 @@ suite('application/json-patch+query', () => {
       const patch: Operation[] = [
         {
           op: 'replace',
-          path: 'orderItem[?(@.productOffering.id=="1513" && @.product.relatedParty[0].name == "Mary")].quantity',
+          path: '/orderItem/quantity?orderItem.productOffering.id=1513&orderItem.product.relatedParty.role=customer&orderItem.product.relatedParty.name=Mary',
           value: 25,
         },
       ];
@@ -345,7 +345,7 @@ suite('application/json-patch+query', () => {
           },
         }],
       };
-      const result = JSONPatchQuery.apply(document, patch);
+      const result = JSONPatchQuery.applyLegacy(document, patch);
       expect(result).to.eql(expected);
     });
   });
@@ -371,7 +371,7 @@ suite('application/json-patch+query', () => {
         const patch: Operation[] = [
           {
             op: 'add',
-            path: 'serviceCharacteristic',
+            path: '/serviceCharacteristic',
             value: { name: 'broadcastFrameDelivery', value: 'unconditional' },
           },
         ];
@@ -394,7 +394,7 @@ suite('application/json-patch+query', () => {
             },
           ],
         };
-        const result = JSONPatchQuery.apply(document, patch);
+        const result = JSONPatchQuery.applyLegacy(document, patch);
         expect(result).to.eql(expected);
       });
 
@@ -421,7 +421,7 @@ suite('application/json-patch+query', () => {
         const patch: Operation[] = [
           {
             op: 'remove',
-            path: 'serviceCharacteristic[?(@.name=="broadcastFrameDelivery")]',
+            path: '/serviceCharacteristic?serviceCharacteristic.name=broadcastFrameDelivery',
           },
         ];
         const expected = {
@@ -439,7 +439,7 @@ suite('application/json-patch+query', () => {
             },
           ],
         };
-        const result = JSONPatchQuery.apply(document, patch);
+        const result = JSONPatchQuery.applyLegacy(document, patch);
         expect(result).to.eql(expected);
       });
 
@@ -462,7 +462,7 @@ suite('application/json-patch+query', () => {
         const patch: Operation[] = [
           {
             op: 'replace',
-            path: 'serviceCharacteristic[?(@.name=="connectionType")].value',
+            path: '/serviceCharacteristic/value?serviceCharacteristic.name=connectionType',
             value: 'Rooted-Multipoint',
           },
         ];
@@ -481,7 +481,7 @@ suite('application/json-patch+query', () => {
             },
           ],
         };
-        const result = JSONPatchQuery.apply(document, patch);
+        const result = JSONPatchQuery.applyLegacy(document, patch);
         expect(result).to.eql(expected);
       });
 
@@ -504,7 +504,7 @@ suite('application/json-patch+query', () => {
         const patch: Operation[] = [
           {
             op: 'add',
-            path: 'serviceCharacteristic[?(@.name=="suspensionReason")].value',
+            path: '/serviceCharacteristic/value?serviceCharacteristic.name=suspensionReason',
             value: 'fraudHeavy',
           },
         ];
@@ -523,7 +523,7 @@ suite('application/json-patch+query', () => {
             },
           ],
         };
-        const result = JSONPatchQuery.apply(document, patch);
+        const result = JSONPatchQuery.applyLegacy(document, patch);
         expect(result).to.eql(expected);
       });
 
@@ -546,7 +546,7 @@ suite('application/json-patch+query', () => {
         const patch: Operation[] = [
           {
             op: 'remove',
-            path: 'serviceCharacteristic[?(@.name=="suspensionReason")].value[?(@ =="fraudHeavy")]',
+            path: '/serviceCharacteristic/value?serviceCharacteristic.name=suspensionReason&serviceCharacteristic.value=fraudHeavy',
           },
         ];
         const expected = {
@@ -564,7 +564,7 @@ suite('application/json-patch+query', () => {
             },
           ],
         };
-        const result = JSONPatchQuery.apply(document, patch);
+        const result = JSONPatchQuery.applyLegacy(document, patch);
         expect(result).to.eql(expected);
       });
 
@@ -590,7 +590,7 @@ suite('application/json-patch+query', () => {
         const patch: Operation[] = [
           {
             op: 'add',
-            path: 'serviceCharacteristic[?(@.name=="order")].value',
+            path: '/serviceCharacteristic/value?serviceCharacteristic.name=order',
             value: { nbnAppointmetId: 'APT123456' },
           },
         ];
@@ -613,7 +613,7 @@ suite('application/json-patch+query', () => {
             },
           ],
         };
-        const result = JSONPatchQuery.apply(document, patch);
+        const result = JSONPatchQuery.applyLegacy(document, patch);
         expect(result).to.eql(expected);
       });
 
@@ -639,7 +639,7 @@ suite('application/json-patch+query', () => {
         const patch: Operation[] = [
           {
             op: 'replace',
-            path: 'serviceCharacteristic[?(@.name=="order")].value.orderSLA',
+            path: '/serviceCharacteristic/value/orderSLA?serviceCharacteristic.name=order',
             value: 'Priority',
           },
         ];
@@ -661,7 +661,7 @@ suite('application/json-patch+query', () => {
             },
           ],
         };
-        const result = JSONPatchQuery.apply(document, patch);
+        const result = JSONPatchQuery.applyLegacy(document, patch);
         expect(result).to.eql(expected);
       });
 
@@ -687,7 +687,7 @@ suite('application/json-patch+query', () => {
         const patch: Operation[] = [
           {
             op: 'remove',
-            path: 'serviceCharacteristic[?(@.name=="order")].value.orderSLA',
+            path: '/serviceCharacteristic/value/orderSLA?serviceCharacteristic.name=order',
           },
         ];
         const expected = {
@@ -707,7 +707,7 @@ suite('application/json-patch+query', () => {
             },
           ],
         };
-        const result = JSONPatchQuery.apply(document, patch);
+        const result = JSONPatchQuery.applyLegacy(document, patch);
         expect(result).to.eql(expected);
       });
     });
@@ -732,7 +732,7 @@ suite('application/json-patch+query', () => {
         const patch: Operation[] = [
           {
             op: 'add',
-            path: 'supportingService',
+            path: '/supportingService',
             value: {
               id: 'ed7ce908-9e89-11e8-98d0-529269fb1459',
               href: 'activationAndConfiguration/v2/service/service2/ed7ce908-9e89-11e8-98d0-529269fb1459',
@@ -783,7 +783,7 @@ suite('application/json-patch+query', () => {
             },
           ],
         };
-        const result = JSONPatchQuery.apply(document, patch);
+        const result = JSONPatchQuery.applyLegacy(document, patch);
         expect(result).to.eql(expected);
       });
 
@@ -827,7 +827,7 @@ suite('application/json-patch+query', () => {
         const patch: Operation[] = [
           {
             op: 'add',
-            path: "$.serviceOrderItem[?(@.service.id=='f36205f4-e144-4ded-9e64-82ede0b26e22')].service.serviceRelationship",
+            path: '/serviceOrderItem/service/serviceRelationship?serviceOrderItem.service.id=f36205f4-e144-4ded-9e64-82ede0b26e22',
             value: [{
               relationshipType: 'substitutionBy',
               service: {
@@ -844,7 +844,7 @@ suite('application/json-patch+query', () => {
           },
           {
             op: 'add',
-            path: "$.serviceOrderItem[?(@.service.id=='f36205f4-e144-4ded-9e64-82ede0b26e22')].service.serviceRelationship",
+            path: '/serviceOrderItem/service/serviceRelationship?serviceOrderItem.service.id=f36205f4-e144-4ded-9e64-82ede0b26e22',
             value: {
               relationshipType: 'reliesOn',
               service: {
@@ -913,7 +913,7 @@ suite('application/json-patch+query', () => {
           ],
         };
 
-        const result = JSONPatchQuery.apply(document, patch);
+        const result = JSONPatchQuery.applyLegacy(document, patch);
         expect(result).to.eql(expected);
       });
 
@@ -957,7 +957,7 @@ suite('application/json-patch+query', () => {
         const patch: Operation[] = [
           {
             op: 'add',
-            path: "$.serviceOrderItem[?(@.service.id=='f36205f4-e144-4ded-9e64-82ede0b26e22')].service.serviceRelationship.values",
+            path: '/serviceOrderItem/service/serviceRelationship/values?serviceOrderItem.service.id=f36205f4-e144-4ded-9e64-82ede0b26e22',
             value: [{
               relationshipType: 'substitutionBy',
               service: {
@@ -973,7 +973,7 @@ suite('application/json-patch+query', () => {
             }],
           },
         ];
-        expect(JSONPatchQuery.apply.bind(JSONPatchQuery, document, patch)).to.throw(Error, /Provided JSON Path did not resolve any nodes/);
+        expect(JSONPatchQuery.applyLegacy.bind(JSONPatchQuery, document, patch)).to.throw(Error, /Provided JSON Path did not resolve any nodes/);
       });
 
       test('Throwing an error message, when trying to add a property to a non existent property via a query', () => {
@@ -1016,7 +1016,7 @@ suite('application/json-patch+query', () => {
         const patch: Operation[] = [
           {
             op: 'add',
-            path: "$.serviceOrderItem[?(@.service.id=='f36205f4-e144-4ded-9e64-82ede0b26e22')].service.serviceRelationship[?(@.id=='d11e1668-2715-409e-a586-6e0bfa55de9e')]",
+            path: '/serviceOrderItem/service/serviceRelationship?serviceOrderItem.service.id=f36205f4-e144-4ded-9e64-82ede0b26e22&serviceOrderItem.service.serviceRelationship.id=d11e1668-2715-409e-a586-6e0bfa55de9e',
             value: [{
               relationshipType: 'substitutionBy',
               service: {
@@ -1032,7 +1032,7 @@ suite('application/json-patch+query', () => {
             }],
           },
         ];
-        expect(JSONPatchQuery.apply.bind(JSONPatchQuery, document, patch)).to.throw(Error, /Provided JSON Path did not resolve any nodes/);
+        expect(JSONPatchQuery.applyLegacy.bind(JSONPatchQuery, document, patch)).to.throw(Error, /Provided JSON Path did not resolve any nodes/);
       });
 
       test('Removing a supportingService', () => {
@@ -1063,7 +1063,7 @@ suite('application/json-patch+query', () => {
         const patch: Operation[] = [
           {
             op: 'remove',
-            path: 'supportingService[?(@.id=="ed7ce908-9e89-11e8-98d0-529269fb1459")]',
+            path: '/supportingService?supportingService.id=ed7ce908-9e89-11e8-98d0-529269fb1459',
           },
         ];
         const expected = {
@@ -1072,7 +1072,7 @@ suite('application/json-patch+query', () => {
           name: 'Eline Service TMF Instance',
           supportingService: [],
         };
-        const result = JSONPatchQuery.apply(document, patch);
+        const result = JSONPatchQuery.applyLegacy(document, patch);
         expect(result).to.eql(expected);
       });
     });
@@ -1099,7 +1099,7 @@ suite('application/json-patch+query', () => {
         const patch: Operation[] = [
           {
             op: 'add',
-            path: 'supportingService[?(@.id=="ed7ce908-9e89-11e8-98d0-529269fb1459")].serviceCharacteristic',
+            path: '/supportingService/serviceCharacteristic?supportService.id=ed7ce908-9e89-11e8-98d0-529269fb1459',
             value: { name: 'callRestriction', value: ['barPremium'] },
           },
         ];
@@ -1124,7 +1124,7 @@ suite('application/json-patch+query', () => {
             },
           ],
         };
-        const result = JSONPatchQuery.apply(document, patch);
+        const result = JSONPatchQuery.applyLegacy(document, patch);
         expect(result).to.eql(expected);
       });
 
@@ -1153,7 +1153,7 @@ suite('application/json-patch+query', () => {
         const patch: Operation[] = [
           {
             op: 'add',
-            path: 'supportingService[?(@.id=="ed7ce908-9e89-11e8-98d0-529269fb1459")].serviceCharacteristic[?(@.name=="callRestriction")].value',
+            path: '/supportingService/serviceCharacteristic/value?supportingService.id=ed7ce908-9e89-11e8-98d0-529269fb1459&supportingService.serviceCharacteristic.name=callRestriction',
             value: 'barTotal',
           },
         ];
@@ -1179,7 +1179,7 @@ suite('application/json-patch+query', () => {
             },
           ],
         };
-        const result = JSONPatchQuery.apply(document, patch);
+        const result = JSONPatchQuery.applyLegacy(document, patch);
         expect(result).to.eql(expected);
       });
 
@@ -1208,7 +1208,7 @@ suite('application/json-patch+query', () => {
         const patch: Operation[] = [
           {
             op: 'remove',
-            path: 'supportingService[?(@.id=="ed7ce908-9e89-11e8-98d0-529269fb1459")].serviceCharacteristic[?(@.name=="callRestriction")].value[?(@ =="barTotal")]',
+            path: '/supportingService/serviceCharacteristic/value?supportingService.id=ed7ce908-9e89-11e8-98d0-529269fb1459&supportingService.serviceCharacteristic.name=callRestriction&supportingService.serviceCharacteristic.value=barTotal',
           },
         ];
         const expected = {
@@ -1233,7 +1233,7 @@ suite('application/json-patch+query', () => {
             },
           ],
         };
-        const result = JSONPatchQuery.apply(document, patch);
+        const result = JSONPatchQuery.applyLegacy(document, patch);
         expect(result).to.eql(expected);
       });
     });

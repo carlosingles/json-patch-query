@@ -37,6 +37,26 @@ export type Operation = AddOperation<any> | RemoveOperation |
 ReplaceOperation<any> | MoveOperation | CopyOperation | TestOperation<any> | GetOperation<any>;
 
 export default class JSONPatchQuery {
+  /**
+   * Legacy Content-Type: application/json-patch-query+json
+   *
+   * Ideally this should not be used any longer,
+   * instead application/json-patch+query should be used instead.
+   *
+   * @param document The document to apply the patch operation to
+   * @param patch An array of patch operations to perform
+   * @returns The modified document
+   */
+  static applyLegacy(document: any, patch: Operation[]): any {
+    return document;
+  }
+
+  /**
+   * Content-Type: application/json-patch+query
+   * @param document The document to apply the patch operation to
+   * @param patch An array of patch operations to perform
+   * @returns The modified document
+   */
   static apply(document: any, patch: Operation[]): any {
     patch.forEach((operation) => {
       const results: string[] = JSONPath({ path: operation.path, json: document, resultType: 'path' });
