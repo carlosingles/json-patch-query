@@ -2,7 +2,7 @@ import { suite, test } from 'mocha';
 import { expect } from 'chai';
 import JSONPatchQuery, { Operation } from '../JSONPatchQuery';
 
-suite.only('application/json-patch-query+json', () => {
+suite('application/json-patch-query+json', () => {
   suite('TM Forum Examples', () => {
     test('Adding an attribute to one of the components of an array', () => {
       const document = {
