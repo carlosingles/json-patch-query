@@ -190,6 +190,8 @@ export function resolveTMFPath(path: string, document: any, includeIndex = false
   })).map((s) => s.split('.'));
 }
 
+const REMOVED_ELEMENT = Symbol('removed element');
+
 export default class JSONPatchQuery {
   /**
    * Legacy Content-Type: application/json-patch-query+json
@@ -224,6 +226,8 @@ export default class JSONPatchQuery {
       if (paths.length === 0) {
         throw new Error(`Provided JSON Path did not resolve any nodes, path: ${operation.path}`);
       }
+      // track array elements that have had elements removed
+      const modifiedArrays = new Set<string[]>();
       paths.forEach((path) => {
         const element = get(document, path);
         const parentPath = path.slice(0, -1);
@@ -243,7 +247,9 @@ export default class JSONPatchQuery {
             break;
           case 'remove':
             if (Array.isArray(parent)) {
-              parent.splice(parseInt(elementKey!, 10), 1);
+              // put a placeholder, since removing the element now will effect further indexes
+              parent.splice(parseInt(elementKey!, 10), 1, REMOVED_ELEMENT);
+              modifiedArrays.add(parentPath);
               set(document, parentPath, parent);
             } else {
               unset(document, path);
@@ -256,6 +262,18 @@ export default class JSONPatchQuery {
             break;
         }
       });
+      // iterate through the modified arrays and remove the symbols
+      if (modifiedArrays.size > 0) {
+        const it = modifiedArrays.values();
+        let result = it.next();
+        while (!result.done) {
+          const modifiedArrayPath = result.value;
+          let modifiedArray = get(document, modifiedArrayPath);
+          modifiedArray = modifiedArray.filter((val: unknown) => val !== REMOVED_ELEMENT);
+          set(document, modifiedArrayPath, modifiedArray);
+          result = it.next();
+        }
+      }
     });
     return document;
   }
@@ -293,6 +311,8 @@ export default class JSONPatchQuery {
       if (paths.length === 0) {
         throw new Error(`Provided JSON Path did not resolve any nodes, path: ${operation.path}`);
       }
+      // track array elements that have had elements removed
+      const modifiedArrays = new Set<string[]>();
       paths.forEach((_path) => {
         const path = _path.filter((p) => p !== '$');
         const element = get(document, path);
@@ -313,7 +333,9 @@ export default class JSONPatchQuery {
             break;
           case 'remove':
             if (Array.isArray(parent)) {
-              parent.splice(parseInt(elementKey, 10), 1);
+              // put a placeholder, since removing the element now will effect further indexes
+              parent.splice(parseInt(elementKey, 10), 1, REMOVED_ELEMENT);
+              modifiedArrays.add(parentPath);
               set(document, parentPath, parent);
             } else {
               unset(document, path);
@@ -326,6 +348,18 @@ export default class JSONPatchQuery {
             break;
         }
       });
+      // iterate through the modified arrays and remove the symbols
+      if (modifiedArrays.size > 0) {
+        const it = modifiedArrays.values();
+        let result = it.next();
+        while (!result.done) {
+          const modifiedArrayPath = result.value;
+          let modifiedArray = get(document, modifiedArrayPath);
+          modifiedArray = modifiedArray.filter((val: unknown) => val !== REMOVED_ELEMENT);
+          set(document, modifiedArrayPath, modifiedArray);
+          result = it.next();
+        }
+      }
     });
     return document;
   }

@@ -3,6 +3,41 @@ import { expect } from 'chai';
 import JSONPatchQuery, { Operation } from '../JSONPatchQuery';
 
 suite('application/json-patch+query', () => {
+  suite('Generic Examples', () => {
+    test('Removing items using a complex query', () => {
+      const document = {
+        swagger: '2.0',
+        tags: [
+          { name: 'catalog' },
+          { name: 'category' },
+          { name: 'productOffering' },
+          { name: 'productOfferingPrice' },
+          { name: 'productSpecification' },
+          { name: 'importJob' },
+          { name: 'exportJob' },
+          { name: 'notification listeners (client side)' },
+          { name: 'events subscription' },
+        ],
+      };
+      const patch: Operation[] = [
+        {
+          op: 'remove',
+          path: "$.tags[?(@.name!='catalog' && @.name!='productOffering' && @.name!='productSpecification')]",
+        },
+      ];
+      const expected = {
+        swagger: '2.0',
+        tags: [
+          { name: 'catalog' },
+          { name: 'productOffering' },
+          { name: 'productSpecification' },
+        ],
+      };
+      const result = JSONPatchQuery.apply(document, patch);
+      expect(result).to.eql(expected);
+    });
+  });
+
   suite('TM Forum Examples', () => {
     test('Adding an attribute to one of the components of an array', () => {
       const document = {
