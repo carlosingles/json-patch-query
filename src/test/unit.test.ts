@@ -38,6 +38,144 @@ suite('application/json-patch+query', () => {
     });
   });
 
+  suite('test operation scenarios', () => {
+    test('Numeric value comparison is incorrect', () => {
+      const document = { id: 342 };
+      const patch: Operation[] = [
+        {
+          op: 'test',
+          path: '$.id',
+          value: 2,
+        },
+      ];
+      expect(() => JSONPatchQuery.apply(document, patch)).to.throw(/test operation failed/);
+    });
+
+    test('Numeric value comparison matches', () => {
+      const document = { id: 2 };
+      const patch: Operation[] = [
+        {
+          op: 'test',
+          path: '$.id',
+          value: 2,
+        },
+      ];
+      expect(() => JSONPatchQuery.apply(document, patch)).to.not.throw(/test operation failed/);
+    });
+
+    test('Boolean value comparison is incorrect', () => {
+      const document = { boolean: false };
+      const patch: Operation[] = [
+        {
+          op: 'test',
+          path: '$.boolean',
+          value: true,
+        },
+      ];
+      expect(() => JSONPatchQuery.apply(document, patch)).to.throw(/test operation failed/);
+    });
+
+    test('Object value comparison matches', () => {
+      const document = { object: { d: 1, e: 2, f: 3 } };
+      const patch: Operation[] = [
+        {
+          op: 'test',
+          path: '$.object',
+          value: {
+            f: 3,
+            d: 1,
+            e: 2,
+          },
+        },
+      ];
+      expect(() => JSONPatchQuery.apply(document, patch)).to.not.throw(/test operation failed/);
+    });
+
+    test('Object value comparison is incorrect', () => {
+      const document = { object: { d: 1, e: 2, f: 3 } };
+      const patch: Operation[] = [
+        {
+          op: 'test',
+          path: '$.object',
+          value: {
+            d: 1,
+            e: 2,
+            f: 4,
+          },
+        },
+      ];
+      expect(() => JSONPatchQuery.apply(document, patch)).to.throw(/test operation failed/);
+    });
+
+    test('String value comparison matches', () => {
+      const document = { string: 'a string value' };
+      const patch: Operation[] = [
+        {
+          op: 'test',
+          path: '$.string',
+          value: 'a string value',
+        },
+      ];
+      expect(() => JSONPatchQuery.apply(document, patch)).to.not.throw(/test operation failed/);
+    });
+
+    test('complex query matches', () => {
+      const document = {
+        id: '1',
+        correlationId: 'TT53482',
+        note: [{
+          date: '2013-07-24T09:55:30.0Z',
+          author: 'Arthur Evans',
+          text: 'Not Informed',
+        }, {
+          date: '2013-07-25T08:55:12.0Z',
+          author: 'John Doe',
+          text: 'Informed',
+        }],
+      };
+      const patch: Operation[] = [
+        {
+          op: 'test',
+          path: 'note[?(@.author=="John Doe")]',
+          value: {
+            date: '2013-07-25T08:55:12.0Z',
+            author: 'John Doe',
+            text: 'Informed',
+          },
+        },
+      ];
+      expect(() => JSONPatchQuery.apply(document, patch)).to.not.throw(/test operation failed/);
+    });
+
+    test('complex query does not match', () => {
+      const document = {
+        id: '1',
+        correlationId: 'TT53482',
+        note: [{
+          date: '2013-07-24T09:55:30.0Z',
+          author: 'Arthur Evans',
+          text: 'Not Informed',
+        }, {
+          date: '2013-07-25T08:55:12.0Z',
+          author: 'John Doe',
+          text: 'Informed',
+        }],
+      };
+      const patch: Operation[] = [
+        {
+          op: 'test',
+          path: 'note[?(@.author=="Arthur Evans")]',
+          value: {
+            date: '2013-07-25T08:55:12.0Z',
+            author: 'John Doe',
+            text: 'Informed',
+          },
+        },
+      ];
+      expect(() => JSONPatchQuery.apply(document, patch)).to.throw(/test operation failed/);
+    });
+  });
+
   suite('TM Forum Examples', () => {
     test('Adding an attribute to one of the components of an array', () => {
       const document = {

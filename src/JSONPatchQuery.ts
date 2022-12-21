@@ -2,6 +2,7 @@ import { JSONPath } from 'jsonpath-plus';
 import get from 'lodash.get';
 import set from 'lodash.set';
 import unset from 'lodash.unset';
+import isequal from 'lodash.isequal';
 
 export interface BaseOperation {
   path: string;
@@ -343,6 +344,11 @@ export default class JSONPatchQuery {
             break;
           case 'replace':
             set(document, path, operation.value);
+            break;
+          case 'test':
+            if (!isequal(get(document, path), operation.value)) {
+              throw new Error(`test operation failed, seeking value: ${JSON.stringify(operation.value)} at path: ${operation.path}`);
+            }
             break;
           default:
             break;
