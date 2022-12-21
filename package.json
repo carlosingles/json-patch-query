@@ -1,6 +1,6 @@
 {
   "name": "json-patch-query",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Implementation of JSON Patch Query as proposed by the TM Forum",
   "main": "dist/JSONPatchQuery.js",
   "scripts": {
@@ -9,7 +9,8 @@
     "test": "mocha"
   },
   "files": [
-    "dist/*"
+    "dist/JSONPatchQuery.d.ts",
+    "dist/JSONPatchQuery.js"
   ],
   "repository": {
     "type": "git",
