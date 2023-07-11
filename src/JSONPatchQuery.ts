@@ -286,93 +286,95 @@ export default class JSONPatchQuery {
    * @returns The modified document
    */
   static apply(document: any, patch: Operation[]): any {
-    patch.forEach((operation) => {
-      const results: string[] = JSONPath({ path: operation.path, json: document, resultType: 'path' });
-      let paths = results.map((result) => JSONPath.toPathArray(result) as string[]);
-      // when it's an add operation and there is no matching path
-      // try to see if there is a valid path on the parent
-      // and add the property that doesn't exist
-      if (paths.length === 0 && operation.op === 'add') {
-        // check to see if the path does end in a static property (case where final node is a query)
-        if (!/^(.*)\.[a-z]*$/i.test(operation.path)) {
-          throw new Error(`Provided JSON Path did not resolve any nodes, path: ${operation.path}`);
-        }
-        const pathArray = operation.path.split('.');
-        const addition = { key: pathArray.pop(), path: pathArray.join('.') };
-        const addResults: string[] = JSONPath({ path: addition.path, json: document, resultType: 'path' });
-        const additionPaths = addResults.map((result) => JSONPath.toPathArray(result) as string[]);
-        if (additionPaths.length > 0 && addition.key) {
-          const additionPath = additionPaths[0].filter((p) => p !== '$');
-          if (additionPath.length > 0) {
-            const element = get(document, additionPath);
-            set(document, additionPath, { ...element, [addition.key]: undefined });
-            const match: string[] = JSONPath({ path: operation.path, json: document, resultType: 'path' });
-            paths = match.map((result) => JSONPath.toPathArray(result) as string[]);
-          } else {
-            set(document, addition.key, undefined);
-            const match: string[] = JSONPath({ path: operation.path, json: document, resultType: 'path' });
-            paths = match.map((result) => JSONPath.toPathArray(result) as string[]);
-          }
-        }
-      }
-      if (paths.length === 0) {
+    patch.forEach((operation) => this.applyOperation(document, operation));
+    return document;
+  }
+
+  private static applyOperation(document: any, operation: Operation): any {
+    const results: string[] = JSONPath({ path: operation.path, json: document, resultType: 'path' });
+    let paths = results.map((result) => JSONPath.toPathArray(result) as string[]);
+    // when it's an add operation and there is no matching path
+    // try to see if there is a valid path on the parent
+    // and add the property that doesn't exist
+    if (paths.length === 0 && operation.op === 'add') {
+      // check to see if the path does end in a static property (case where final node is a query)
+      if (!/^(.*)\.[a-z]*$/i.test(operation.path)) {
         throw new Error(`Provided JSON Path did not resolve any nodes, path: ${operation.path}`);
       }
-      // track array elements that have had elements removed
-      const modifiedArrays = new Set<string[]>();
-      paths.forEach((_path) => {
-        const path = _path.filter((p) => p !== '$');
-        const element = get(document, path);
-        const parentPath = path.slice(0, -1);
-        const [elementKey] = path.slice(-1);
-        const parent = get(document, parentPath);
-        let newValue;
-        switch (operation.op) {
-          case 'add':
-            if (Array.isArray(element)) {
-              newValue = [...element, operation.value];
-            } else if (typeof element === 'object') {
-              newValue = { ...element, ...operation.value };
-            } else {
-              newValue = operation.value;
-            }
-            set(document, path, newValue);
-            break;
-          case 'remove':
-            if (Array.isArray(parent)) {
-              // put a placeholder, since removing the element now will effect further indexes
-              parent.splice(parseInt(elementKey, 10), 1, REMOVED_ELEMENT);
-              modifiedArrays.add(parentPath);
-              set(document, parentPath, parent);
-            } else {
-              unset(document, path);
-            }
-            break;
-          case 'replace':
-            set(document, path, operation.value);
-            break;
-          case 'test':
-            if (!isequal(get(document, path), operation.value)) {
-              throw new Error(`test operation failed, seeking value: ${JSON.stringify(operation.value)} at path: ${operation.path}`);
-            }
-            break;
-          default:
-            break;
-        }
-      });
-      // iterate through the modified arrays and remove the symbols
-      if (modifiedArrays.size > 0) {
-        const it = modifiedArrays.values();
-        let result = it.next();
-        while (!result.done) {
-          const modifiedArrayPath = result.value;
-          let modifiedArray = get(document, modifiedArrayPath);
-          modifiedArray = modifiedArray.filter((val: unknown) => val !== REMOVED_ELEMENT);
-          set(document, modifiedArrayPath, modifiedArray);
-          result = it.next();
+      const pathArray = operation.path.split('.');
+      const addition = { key: pathArray.pop(), path: pathArray.join('.') };
+      const addResults: string[] = JSONPath({ path: addition.path, json: document, resultType: 'path' });
+      const additionPaths = addResults.map((result) => JSONPath.toPathArray(result) as string[]);
+      if (additionPaths.length > 0 && addition.key) {
+        const additionPath = additionPaths[0].filter((p) => p !== '$');
+        if (additionPath.length > 0) {
+          const element = get(document, additionPath);
+          set(document, additionPath, { ...element, [addition.key]: undefined });
+          const match: string[] = JSONPath({ path: operation.path, json: document, resultType: 'path' });
+          paths = match.map((result) => JSONPath.toPathArray(result) as string[]);
+        } else {
+          set(document, addition.key, undefined);
+          const match: string[] = JSONPath({ path: operation.path, json: document, resultType: 'path' });
+          paths = match.map((result) => JSONPath.toPathArray(result) as string[]);
         }
       }
+    }
+    if (paths.length === 0) {
+      throw new Error(`Provided JSON Path did not resolve any nodes, path: ${operation.path}`);
+    }
+    // track array elements that have had elements removed
+    const modifiedArrays = new Set<string[]>();
+    paths.forEach((_path) => {
+      const path = _path.filter((p) => p !== '$');
+      const element = get(document, path);
+      const parentPath = path.slice(0, -1);
+      const [elementKey] = path.slice(-1);
+      const parent = get(document, parentPath);
+      let newValue;
+      switch (operation.op) {
+        case 'add':
+          if (Array.isArray(element)) {
+            newValue = [...element, operation.value];
+          } else if (typeof element === 'object') {
+            newValue = { ...element, ...operation.value };
+          } else {
+            newValue = operation.value;
+          }
+          set(document, path, newValue);
+          break;
+        case 'remove':
+          if (Array.isArray(parent)) {
+            // put a placeholder, since removing the element now will effect further indexes
+            parent.splice(parseInt(elementKey, 10), 1, REMOVED_ELEMENT);
+            modifiedArrays.add(parentPath);
+            set(document, parentPath, parent);
+          } else {
+            unset(document, path);
+          }
+          break;
+        case 'replace':
+          set(document, path, operation.value);
+          break;
+        case 'test':
+          if (!isequal(get(document, path), operation.value)) {
+            throw new Error(`test operation failed, seeking value: ${JSON.stringify(operation.value)} at path: ${operation.path}`);
+          }
+          break;
+        default:
+          break;
+      }
     });
-    return document;
+    // iterate through the modified arrays and remove the symbols
+    if (modifiedArrays.size > 0) {
+      const it = modifiedArrays.values();
+      let result = it.next();
+      while (!result.done) {
+        const modifiedArrayPath = result.value;
+        let modifiedArray = get(document, modifiedArrayPath);
+        modifiedArray = modifiedArray.filter((val: unknown) => val !== REMOVED_ELEMENT);
+        set(document, modifiedArrayPath, modifiedArray);
+        result = it.next();
+      }
+    }
   }
 }
