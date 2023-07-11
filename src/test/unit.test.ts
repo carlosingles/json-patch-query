@@ -190,6 +190,169 @@ suite('application/json-patch+query', () => {
     });
   });
 
+  suite('copy operation scenarios', () => {
+    test('copy a primitive value from one location to another', () => {
+      const document = [{ id: 123, role: 'Admin' }, { id: 342 }];
+      const patch: Operation[] = [
+        {
+          op: 'copy',
+          path: '$.[?(@.id==342)].role',
+          from: '$.[?(@.id==123)].role',
+        },
+      ];
+      const expected = [{ id: 123, role: 'Admin' }, { id: 342, role: 'Admin' }];
+      const result = JSONPatchQuery.apply(document, patch);
+      expect(result).to.eql(expected);
+    });
+
+    test('fail to copy a value when the json path resolves multiple nodes', () => {
+      const document = {
+        details: [
+          { name: "address", value: "123 Fake Street" },
+          { name: "address", value: "123 Real Street" },
+        ]
+      };
+      const patch: Operation[] = [
+        {
+          op: 'copy',
+          path: '$.realAddress',
+          from: '$.details.[?(@.name=="address")].value',
+        },
+      ];
+      expect(() => JSONPatchQuery.apply(document, patch)).to.throw(/"from" value resolved multiple nodes/);
+    });
+
+    test('copy an object value from one location to another', () => {
+      const document = {
+        id: 342,
+        address: {
+          code: 123,
+          state: 'ST',
+        },
+      };
+      const patch: Operation[] = [
+        {
+          op: 'copy',
+          path: '$.secondaryAddress',
+          from: '$.address',
+        },
+      ];
+      const expected = {
+        id: 342,
+        address: {
+          code: 123,
+          state: 'ST',
+        },
+        secondaryAddress: {
+          code: 123,
+          state: 'ST',
+        },
+      };
+      const result = JSONPatchQuery.apply(document, patch);
+      expect(result).to.eql(expected);
+    });
+
+    test('copy a value from within an array to another location', () => {
+      const document = {
+        users: [{ id: 123, role: 'Admin' }, { id: 342, role: 'User' }],
+        admins: [],
+      };
+      const patch: Operation[] = [
+        {
+          op: 'copy',
+          path: '$.admins',
+          from: '$.users.[?(@.role=="Admin")]',
+        },
+      ];
+      const expected = {
+        users: [{ id: 123, role: 'Admin' }, { id: 342, role: 'User' }],
+        admins: [{ id: 123, role: 'Admin' }],
+      };
+      const result = JSONPatchQuery.apply(document, patch);
+      expect(result).to.eql(expected);
+    });
+  });
+
+  suite('move operation scenarios', () => {
+    test('move a primitive value from one location to another', () => {
+      const document = [{ id: 123, role: 'Admin' }, { id: 342 }];
+      const patch: Operation[] = [
+        {
+          op: 'move',
+          path: '$.[?(@.id==342)].role',
+          from: '$.[?(@.id==123)].role',
+        },
+      ];
+      const expected = [{ id: 123 }, { id: 342, role: 'Admin' }];
+      const result = JSONPatchQuery.apply(document, patch);
+      expect(result).to.eql(expected);
+    });
+
+    test('fail to move a value when the json path resolves multiple nodes', () => {
+      const document = {
+        details: [
+          { name: "address", value: "123 Fake Street" },
+          { name: "address", value: "123 Real Street" },
+        ],
+        otherDetails: []
+      };
+      const patch: Operation[] = [
+        {
+          op: 'move',
+          path: '$.otherDetails',
+          from: '$.details.[?(@.name=="address")]',
+        },
+      ];
+      expect(() => JSONPatchQuery.apply(document, patch)).to.throw(/"from" value resolved multiple nodes/);
+    });
+
+    test('move an object value from one location to another', () => {
+      const document = {
+        id: 342,
+        address: {
+          code: 123,
+          state: 'ST',
+        },
+      };
+      const patch: Operation[] = [
+        {
+          op: 'move',
+          path: '$.secondaryAddress',
+          from: '$.address',
+        },
+      ];
+      const expected = {
+        id: 342,
+        secondaryAddress: {
+          code: 123,
+          state: 'ST',
+        },
+      };
+      const result = JSONPatchQuery.apply(document, patch);
+      expect(result).to.eql(expected);
+    });
+
+    test('move a value from within an array to another location', () => {
+      const document = {
+        users: [{ id: 123, role: 'Admin' }, { id: 342, role: 'User' }],
+        admins: [],
+      };
+      const patch: Operation[] = [
+        {
+          op: 'move',
+          path: '$.admins',
+          from: '$.users.[?(@.role=="Admin")]',
+        },
+      ];
+      const expected = {
+        users: [{ id: 342, role: 'User' }],
+        admins: [{ id: 123, role: 'Admin' }],
+      };
+      const result = JSONPatchQuery.apply(document, patch);
+      expect(result).to.eql(expected);
+    });
+  });
+
   suite('TM Forum Examples', () => {
     test('Adding an attribute to one of the components of an array', () => {
       const document = {
