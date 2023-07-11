@@ -35,7 +35,7 @@ export interface GetOperation<T> extends BaseOperation {
   value: T;
 }
 export type Operation = AddOperation<any> | RemoveOperation |
-ReplaceOperation<any> | MoveOperation | CopyOperation | TestOperation<any> | GetOperation<any>;
+  ReplaceOperation<any> | MoveOperation | CopyOperation | TestOperation<any> | GetOperation<any>;
 
 /**
  * Takes a dot notation path and tries to resolve the array path if it is an array of objects
@@ -126,7 +126,7 @@ export function expandPaths(
  * @param document The document to match paths against
  * @returns An array of matching paths in lodash format (with index)
  */
-export function findPaths(query: {[matcher:string]: string}, document: any) {
+export function findPaths(query: { [matcher: string]: string }, document: any) {
   const matched: string[][] = [];
   let matchingValueInArray;
   Object.keys(query).forEach((param) => {
@@ -303,10 +303,16 @@ export default class JSONPatchQuery {
         const additionPaths = addResults.map((result) => JSONPath.toPathArray(result) as string[]);
         if (additionPaths.length > 0 && addition.key) {
           const additionPath = additionPaths[0].filter((p) => p !== '$');
-          const element = get(document, additionPath);
-          set(document, additionPath, { ...element, [addition.key]: undefined });
-          const match: string[] = JSONPath({ path: operation.path, json: document, resultType: 'path' });
-          paths = match.map((result) => JSONPath.toPathArray(result) as string[]);
+          if (additionPath.length > 0) {
+            const element = get(document, additionPath);
+            set(document, additionPath, { ...element, [addition.key]: undefined });
+            const match: string[] = JSONPath({ path: operation.path, json: document, resultType: 'path' });
+            paths = match.map((result) => JSONPath.toPathArray(result) as string[]);
+          } else {
+            set(document, addition.key, undefined);
+            const match: string[] = JSONPath({ path: operation.path, json: document, resultType: 'path' });
+            paths = match.map((result) => JSONPath.toPathArray(result) as string[]);
+          }
         }
       }
       if (paths.length === 0) {

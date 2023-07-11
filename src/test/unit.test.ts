@@ -36,6 +36,20 @@ suite('application/json-patch+query', () => {
       const result = JSONPatchQuery.apply(document, patch);
       expect(result).to.eql(expected);
     });
+
+    test('Performing an add operation to the top level object', () => {
+      const document = { id: 342 };
+      const patch: Operation[] = [
+        {
+          op: 'add',
+          path: '$.name',
+          value: 'Jane Doe',
+        },
+      ];
+      const expected = { id: 342, name: 'Jane Doe' };
+      const result = JSONPatchQuery.apply(document, patch);
+      expect(result).to.eql(expected);
+    });
   });
 
   suite('test operation scenarios', () => {
