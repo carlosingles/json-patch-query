@@ -30,12 +30,11 @@ export interface TestOperation<T> extends BaseOperation {
   op: 'test';
   value: T;
 }
-export interface GetOperation<T> extends BaseOperation {
+export interface GetOperation extends BaseOperation {
   op: '_get';
-  value: T;
 }
 export type Operation = AddOperation<any> | RemoveOperation |
-  ReplaceOperation<any> | MoveOperation | CopyOperation | TestOperation<any> | GetOperation<any>;
+  ReplaceOperation<any> | MoveOperation | CopyOperation | TestOperation<any> | GetOperation;
 
 /**
  * Takes a dot notation path and tries to resolve the array path if it is an array of objects
@@ -192,6 +191,7 @@ export function resolveTMFPath(path: string, document: any, includeIndex = false
 }
 
 const REMOVED_ELEMENT = Symbol('removed element');
+const ADDING_ELEMENT = Symbol('adding element');
 
 export default class JSONPatchQuery {
   /**
@@ -290,7 +290,24 @@ export default class JSONPatchQuery {
     return document;
   }
 
-  private static applyOperation(document: any, operation: Operation): any {
+  private static applyOperation(document: any, operation: GetOperation): any;
+
+  private static applyOperation(document: any, operation: Operation): void;
+
+  private static applyOperation(document: any, operation: Operation): any | void {
+    // perform a get and add for copy
+    if (operation.op === 'copy') {
+      const value = this.applyOperation(document, { op: '_get', path: operation.from });
+      this.applyOperation(document, { op: 'add', path: operation.path, value });
+      return;
+    }
+    // perform a get, remove and add for move
+    if (operation.op === 'move') {
+      const value = this.applyOperation(document, { op: '_get', path: operation.from });
+      this.applyOperation(document, { op: 'remove', path: operation.from });
+      this.applyOperation(document, { op: 'add', path: operation.path, value });
+      return;
+    }
     const results: string[] = JSONPath({ path: operation.path, json: document, resultType: 'path' });
     let paths = results.map((result) => JSONPath.toPathArray(result) as string[]);
     // when it's an add operation and there is no matching path
@@ -309,11 +326,11 @@ export default class JSONPatchQuery {
         const additionPath = additionPaths[0].filter((p) => p !== '$');
         if (additionPath.length > 0) {
           const element = get(document, additionPath);
-          set(document, additionPath, { ...element, [addition.key]: undefined });
+          set(document, additionPath, { ...element, [addition.key]: ADDING_ELEMENT });
           const match: string[] = JSONPath({ path: operation.path, json: document, resultType: 'path' });
           paths = match.map((result) => JSONPath.toPathArray(result) as string[]);
         } else {
-          set(document, addition.key, undefined);
+          set(document, addition.key, ADDING_ELEMENT);
           const match: string[] = JSONPath({ path: operation.path, json: document, resultType: 'path' });
           paths = match.map((result) => JSONPath.toPathArray(result) as string[]);
         }
@@ -321,6 +338,14 @@ export default class JSONPatchQuery {
     }
     if (paths.length === 0) {
       throw new Error(`Provided JSON Path did not resolve any nodes, path: ${operation.path}`);
+    }
+    // when performing a _get ensure there is only one matching value
+    if (operation.op === '_get') {
+      if (paths.length > 1) {
+        throw new Error(`Provided JSON Path "from" value resolved multiple nodes. Ensure the path only resolves to one node, path: ${operation.path}`);
+      }
+      const path = paths[0].filter((p) => p !== '$');
+      return get(document, path);
     }
     // track array elements that have had elements removed
     const modifiedArrays = new Set<string[]>();
