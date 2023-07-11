@@ -213,13 +213,13 @@ export default class JSONPatchQuery {
       if (paths.length === 0 && operation.op === 'add') {
         const { searchParams, pathname } = new URL(operation.path, 'https://www.example.com');
         const pathArray = pathname.split('/');
-        const addition = { key: pathArray.pop(), path: `${pathArray.join('/')}?${decodeURI(searchParams.toString().replace(/\+/g, '%20'))}` };
+        const addition = { key: pathArray.pop() as string, path: `${pathArray.join('/')}?${decodeURI(searchParams.toString().replace(/\+/g, '%20'))}` };
         // include indexes when adding a non existent property
         const additionPaths = resolveTMFPath(addition.path, document, true);
         if (additionPaths.length > 0 && addition.key) {
           additionPaths.forEach((additionPath) => {
             const element = get(document, additionPath);
-            set(document, additionPath, { ...element, [addition.key!]: undefined });
+            set(document, additionPath, { ...element, [addition.key]: undefined });
           });
           paths = resolveTMFPath(operation.path, document);
         }
@@ -249,7 +249,7 @@ export default class JSONPatchQuery {
           case 'remove':
             if (Array.isArray(parent)) {
               // put a placeholder, since removing the element now will effect further indexes
-              parent.splice(parseInt(elementKey!, 10), 1, REMOVED_ELEMENT);
+              parent.splice(parseInt(elementKey, 10), 1, REMOVED_ELEMENT);
               modifiedArrays.add(parentPath);
               set(document, parentPath, parent);
             } else {
