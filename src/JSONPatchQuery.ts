@@ -319,7 +319,7 @@ export default class JSONPatchQuery {
         throw new Error(`Provided JSON Path did not resolve any nodes, path: ${operation.path}`);
       }
       const pathArray = operation.path.split('.');
-      const addition = { key: pathArray.pop()?.replace('`', ''), path: pathArray.join('.') };
+      const addition = { key: pathArray.pop()?.replace(/^`/, ''), path: pathArray.join('.') };
       const addResults: string[] = JSONPath({ path: addition.path, json: document, resultType: 'path' });
       const additionPaths = addResults.map((result) => JSONPath.toPathArray(result) as string[]);
       if (additionPaths.length > 0 && addition.key) {
