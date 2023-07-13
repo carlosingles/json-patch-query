@@ -105,6 +105,20 @@ suite('application/json-patch+query', () => {
       const result = JSONPatchQuery.apply(document, patch);
       expect(result).to.eql(expected);
     });
+
+    test('Performing an add operation with a nested field that contains an escape character that is not used', () => {
+      const document = { id: 342, details: { name: "Jane Doe" } };
+      const patch: Operation[] = [
+        {
+          op: 'add',
+          path: '$.details.escape`string',
+          value: '/jane-doe',
+        },
+      ];
+      const expected = { id: 342, details: { 'escape`string': '/jane-doe', name: "Jane Doe" } };
+      const result = JSONPatchQuery.apply(document, patch);
+      expect(result).to.eql(expected);
+    });
   });
 
   suite('test operation scenarios', () => {
