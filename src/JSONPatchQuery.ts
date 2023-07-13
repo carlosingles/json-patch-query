@@ -360,7 +360,7 @@ export default class JSONPatchQuery {
         case 'add':
           if (Array.isArray(element)) {
             newValue = [...element, operation.value];
-          } else if (typeof element === 'object') {
+          } else if (typeof element === 'object' && typeof operation.value === 'object') {
             newValue = { ...element, ...operation.value };
           } else {
             newValue = operation.value;

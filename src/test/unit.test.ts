@@ -65,6 +65,20 @@ suite('application/json-patch+query', () => {
       expect(result).to.eql(expected);
     });
 
+    test('Performing an add operation to an existing object with a string value', () => {
+      const document = { id: 342, address: { code: 123, line: '123 Fake Street' } };
+      const patch: Operation[] = [
+        {
+          op: 'add',
+          path: '$.address',
+          value: '123 Fake Street',
+        },
+      ];
+      const expected = { id: 342, address: '123 Fake Street' };
+      const result = JSONPatchQuery.apply(document, patch);
+      expect(result).to.eql(expected);
+    });
+
     test('Performing an add operation with a field that contains a special character', () => {
       const document = { id: 342 };
       const patch: Operation[] = [
