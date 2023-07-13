@@ -50,6 +50,61 @@ suite('application/json-patch+query', () => {
       const result = JSONPatchQuery.apply(document, patch);
       expect(result).to.eql(expected);
     });
+
+    test('Performing an add operation with a field that contains a number', () => {
+      const document = { id: 342 };
+      const patch: Operation[] = [
+        {
+          op: 'add',
+          path: '$.name2',
+          value: 'Jane Doe',
+        },
+      ];
+      const expected = { id: 342, name2: 'Jane Doe' };
+      const result = JSONPatchQuery.apply(document, patch);
+      expect(result).to.eql(expected);
+    });
+
+    test('Performing an add operation with a field that contains a special character', () => {
+      const document = { id: 342 };
+      const patch: Operation[] = [
+        {
+          op: 'add',
+          path: '$.`@href',
+          value: '/jane-doe',
+        },
+      ];
+      const expected = { id: 342, '@href': '/jane-doe' };
+      const result = JSONPatchQuery.apply(document, patch);
+      expect(result).to.eql(expected);
+    });
+
+    test('Performing an add operation with a nested field that contains a special character', () => {
+      const document = { id: 342, details: { name: "Jane Doe" } };
+      const patch: Operation[] = [
+        {
+          op: 'add',
+          path: '$.details.`@href',
+          value: '/jane-doe',
+        },
+      ];
+      const expected = { id: 342, details: { '@href': '/jane-doe', name: "Jane Doe" } };
+      const result = JSONPatchQuery.apply(document, patch);
+      expect(result).to.eql(expected);
+    });
+
+    test('Performing a remove operation using the escape character', () => {
+      const document = { id: 342, details: { name: "Jane Doe", '@href': '/jane-doe' } };
+      const patch: Operation[] = [
+        {
+          op: 'remove',
+          path: '$.details.`@href',
+        },
+      ];
+      const expected = { id: 342, details: { name: "Jane Doe" } };
+      const result = JSONPatchQuery.apply(document, patch);
+      expect(result).to.eql(expected);
+    });
   });
 
   suite('test operation scenarios', () => {
@@ -327,6 +382,32 @@ suite('application/json-patch+query', () => {
           code: 123,
           state: 'ST',
         },
+      };
+      const result = JSONPatchQuery.apply(document, patch);
+      expect(result).to.eql(expected);
+    });
+
+    test('move an object value from one location to another with escape characters', () => {
+      const document = {
+        id: 342,
+        address: {
+          '@code': 123,
+          state: 'ST',
+        },
+      };
+      const patch: Operation[] = [
+        {
+          op: 'move',
+          path: '$.`@code',
+          from: '$.address.`@code',
+        },
+      ];
+      const expected = {
+        id: 342,
+        address: {
+          state: 'ST',
+        },
+        '@code': 123,
       };
       const result = JSONPatchQuery.apply(document, patch);
       expect(result).to.eql(expected);

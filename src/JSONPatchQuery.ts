@@ -315,11 +315,11 @@ export default class JSONPatchQuery {
     // and add the property that doesn't exist
     if (paths.length === 0 && operation.op === 'add') {
       // check to see if the path does end in a static property (case where final node is a query)
-      if (!/^(.*)\.[a-z]*$/i.test(operation.path)) {
+      if (!/^(.*)\.[`\w@#\-$]*$/i.test(operation.path)) {
         throw new Error(`Provided JSON Path did not resolve any nodes, path: ${operation.path}`);
       }
       const pathArray = operation.path.split('.');
-      const addition = { key: pathArray.pop(), path: pathArray.join('.') };
+      const addition = { key: pathArray.pop()?.replace('`', ''), path: pathArray.join('.') };
       const addResults: string[] = JSONPath({ path: addition.path, json: document, resultType: 'path' });
       const additionPaths = addResults.map((result) => JSONPath.toPathArray(result) as string[]);
       if (additionPaths.length > 0 && addition.key) {
