@@ -287,6 +287,10 @@ export default class JSONPatchQuery {
    */
   static apply(document: any, patch: Operation[]): any {
     patch.forEach((operation) => this.applyOperation(document, operation));
+    // handle document being an array with elements removed
+    if (Array.isArray(document)) {
+      return document.filter((val) => val !== REMOVED_ELEMENT);
+    }
     return document;
   }
 
@@ -373,6 +377,9 @@ export default class JSONPatchQuery {
             parent.splice(parseInt(elementKey, 10), 1, REMOVED_ELEMENT);
             modifiedArrays.add(parentPath);
             set(document, parentPath, parent);
+          } else if (Array.isArray(document) && !parent) { // case where there's no parent since its the root
+            modifiedArrays.add([]); // empty array since the path is the root
+            set(document, path, REMOVED_ELEMENT);
           } else {
             unset(document, path);
           }
@@ -395,7 +402,7 @@ export default class JSONPatchQuery {
       let result = it.next();
       while (!result.done) {
         const modifiedArrayPath = result.value;
-        let modifiedArray = get(document, modifiedArrayPath);
+        let modifiedArray = get(document, modifiedArrayPath, document);
         modifiedArray = modifiedArray.filter((val: unknown) => val !== REMOVED_ELEMENT);
         set(document, modifiedArrayPath, modifiedArray);
         result = it.next();

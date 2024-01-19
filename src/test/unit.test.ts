@@ -133,6 +133,73 @@ suite('application/json-patch+query', () => {
       const result = JSONPatchQuery.apply(document, patch);
       expect(result).to.eql(expected);
     });
+
+    test('Performing an add operation using a nested filter expression', () => {
+      const document =
+        [{
+          "id": "79af5012-c924-45a3-8c43-442724dfcb5c",
+          "nested": [
+            {
+              "id": "acfbcab4-8d75-45ca-9f63-afab5097b925",
+              "status": "inactive",
+              "@referredType": "InstanceConsumerGroup"
+            },
+            {
+              "id": "dfa0060f-0dc7-4f82-aa9f-ff0f1e73b29e",
+              "status": "active",
+            },
+          ],
+        },
+        {
+          "id": "f36205f4-e144-4ded-9e64-82ede0b26e22",
+          "nested": [
+            {
+              "id": "a3f227c1-de5e-439f-8631-5efb5ec19ac0",
+              "status": "active",
+            },
+            {
+              "id": "9bcffb8d-4e3c-4a62-87e5-af7b5c07c088",
+              "status": "active",
+            },
+          ],
+        },
+        {
+          "id": "445edd27-56cc-4a41-a598-0dad778aff41",
+          "nested": [
+            {
+              "id": "eff8fc58-93c6-4549-a4b6-d950686c616e",
+              "status": "inactive",
+            },
+            {
+              "id": "6c3ee9af-2c89-4b9a-b987-fd5fd98b95af",
+              "status": "inactive",
+            },
+          ],
+        }];
+      const patch: Operation[] = [
+        {
+          op: 'remove',
+          path: `$[?(@.nested[?(@.status=='inactive')])]`,
+        },
+      ];
+      const expected = [
+        {
+          "id": "f36205f4-e144-4ded-9e64-82ede0b26e22",
+          "nested": [
+            {
+              "id": "a3f227c1-de5e-439f-8631-5efb5ec19ac0",
+              "status": "active",
+            },
+            {
+              "id": "9bcffb8d-4e3c-4a62-87e5-af7b5c07c088",
+              "status": "active",
+            },
+          ],
+        },
+      ];
+      const result = JSONPatchQuery.apply(document, patch);
+      expect(result).to.eql(expected);
+    });
   });
 
   suite('test operation scenarios', () => {
