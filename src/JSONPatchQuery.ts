@@ -1,8 +1,8 @@
 import { JSONPath } from 'jsonpath-plus';
-import get from 'lodash.get';
-import set from 'lodash.set';
-import unset from 'lodash.unset';
-import isequal from 'lodash.isequal';
+import get from 'lodash/get';
+import set from 'lodash/set';
+import unset from 'lodash/unset';
+import isequal from 'lodash/isEqual';
 
 export interface BaseOperation {
   path: string;
