@@ -1,15 +1,14 @@
 {
   "compilerOptions": {
-    "target": "es2020",
-    "module": "commonjs",
+    "target": "esnext",
+    "module": "nodenext",
     "rootDir": "./src",
     "outDir": "./dist",
     "esModuleInterop": true,
     "declaration": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "types": [
-      "mocha"
-    ],
-  }
+  },
+  "include": ["src"],
+  "exclude": ["src/test"]
 }

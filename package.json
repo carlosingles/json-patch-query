@@ -2,15 +2,25 @@
   "name": "json-patch-query",
   "version": "1.4.1",
   "description": "Implementation of JSON Patch Query as proposed by the TM Forum",
-  "main": "dist/JSONPatchQuery.js",
+  "type": "module",
+  "main": "./dist/JSONPatchQuery.cjs",
+  "module": "./dist/JSONPatchQuery.mjs",
+  "types": "./dist/JSONPatchQuery.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/JSONPatchQuery.cjs",
+      "import": "./dist/JSONPatchQuery.mjs",
+      "types": "./dist/JSONPatchQuery.d.ts"
+    }
+  },
   "scripts": {
-    "prepublish": "tsc",
+    "prepack": "unbuild",
     "build": "tsc",
-    "test": "mocha"
+    "test": "vitest run",
+    "lint": "eslint src"
   },
   "files": [
-    "dist/JSONPatchQuery.d.ts",
-    "dist/JSONPatchQuery.js"
+    "dist/*"
   ],
   "repository": {
     "type": "git",
@@ -53,24 +63,19 @@
   "author": "Carlos Ingles",
   "license": "MIT",
   "devDependencies": {
+    "@eslint/js": "^9.1.1",
     "@semantic-release/git": "^10.0.1",
-    "@types/chai": "^4.2.22",
-    "@types/jsonpath": "^0.2.0",
     "@types/lodash": "^4.14.202",
-    "@types/mocha": "^9.0.0",
-    "@typescript-eslint/eslint-plugin": "^5.4.0",
-    "@typescript-eslint/parser": "^5.4.0",
-    "chai": "^4.3.4",
-    "eslint": "^8.2.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-prettier": "^8.8.0",
-    "eslint-plugin-import": "^2.25.3",
-    "mocha": "^9.1.3",
-    "mocha-clean": "^1.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
     "semantic-release": "^23.0.0",
     "source-map-support": "^0.5.20",
     "ts-node": "^10.4.0",
-    "typescript": "^5.1.6"
+    "typescript": "^5.1.6",
+    "typescript-eslint": "^7.7.0",
+    "unbuild": "^2.0.0",
+    "vitest": "^1.5.0"
   },
   "dependencies": {
     "jsonpath-plus": "^8.0.0",

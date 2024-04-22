@@ -1,8 +1,6 @@
 import { JSONPath } from 'jsonpath-plus';
-import get from 'lodash/get';
-import set from 'lodash/set';
-import unset from 'lodash/unset';
-import isequal from 'lodash/isEqual';
+import lodash from 'lodash';
+const { get, set, unset, isEqual } = lodash;
 
 export interface BaseOperation {
   path: string;
@@ -388,7 +386,7 @@ export default class JSONPatchQuery {
           set(document, path, operation.value);
           break;
         case 'test':
-          if (!isequal(get(document, path), operation.value)) {
+          if (!isEqual(get(document, path), operation.value)) {
             throw new Error(`test operation failed, seeking value: ${JSON.stringify(operation.value)} at path: ${operation.path}`);
           }
           break;

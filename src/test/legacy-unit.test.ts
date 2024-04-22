@@ -1,6 +1,5 @@
-import { suite, test } from 'mocha';
-import { expect } from 'chai';
-import JSONPatchQuery, { Operation } from '../JSONPatchQuery';
+import { suite, test, expect } from 'vitest';
+import JSONPatchQuery, { Operation } from '../JSONPatchQuery.js';
 
 suite('application/json-patch-query+json', () => {
   suite('TM Forum Examples', () => {
