@@ -78,7 +78,7 @@
     "vitest": "^1.5.0"
   },
   "dependencies": {
-    "jsonpath-plus": "^8.0.0",
+    "jsonpath-plus": "^10.0.4",
     "lodash": "^4.17.21"
   }
 }
